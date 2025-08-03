@@ -3,15 +3,16 @@ from PIL import Image
 import os
 import io
 import hashlib
-import random  # Add this import
+import random
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
 # 🔐 Embed message into image using MSB
 def embed_message(image, message, key):
-    # Validate image capacity
-    width, height = image.size
+    # Convert to RGB for consistent processing
+    img_rgb = image.convert("RGB")
+    width, height = img_rgb.size
     max_bits = width * height
     required_bits = len(message) * 8 + 32  # 32 bits for message length
     
@@ -28,7 +29,7 @@ def embed_message(image, message, key):
     binary_message = binary_length + ''.join(format(ord(char), '08b') for char in message)
     
     # Create a copy to avoid modifying original
-    img_copy = image.copy()
+    img_copy = img_rgb.copy()
     pixels = img_copy.load()
     
     # Generate random pixel order using the seed
@@ -51,12 +52,14 @@ def embed_message(image, message, key):
 
 # 🔓 Extract message from image
 def extract_message(image, key):
+    # Convert to RGB for consistent processing
+    img_rgb = image.convert("RGB")
+    pixels = img_rgb.load()
+    width, height = img_rgb.size
+    
     # Use key to seed the extraction process
     seed = int(hashlib.sha256(key.encode()).hexdigest(), 16)
     random.seed(seed)
-    
-    pixels = image.load()
-    width, height = image.size
     
     # Generate same random pixel order using the seed
     indices = [(x, y) for y in range(height) for x in range(width)]
@@ -67,9 +70,10 @@ def extract_message(image, key):
     for x, y in indices:
         r, g, b = pixels[x, y]
         binary_message += str(r & 1)
-        if len(binary_message) >= 32:
+        # Stop when we have at least 32 bits and a full byte boundary
+        if len(binary_message) >= 32 and len(binary_message) % 8 == 0:
+            # Try to get message length
             try:
-                # Check if we have full length header
                 message_length = int(binary_message[:32], 2)
                 total_bits = 32 + message_length * 8
                 if len(binary_message) >= total_bits:
@@ -79,14 +83,14 @@ def extract_message(image, key):
 
     # Extract message length from first 32 bits
     if len(binary_message) < 32:
-        raise ValueError("Invalid message header")
+        raise ValueError("Could not extract message header")
     
     try:
         message_length = int(binary_message[:32], 2)
     except ValueError:
         raise ValueError("Invalid message header - possibly wrong key")
 
-    # Extract actual message
+    # Extract actual message bits
     message_bits = binary_message[32:32 + message_length * 8]
     
     # Convert to string
@@ -94,9 +98,9 @@ def extract_message(image, key):
     for i in range(0, len(message_bits), 8):
         if i + 8 > len(message_bits):
             break
-        char_bin = message_bits[i:i+8]
+        byte_str = message_bits[i:i+8]
         try:
-            chars.append(chr(int(char_bin, 2)))
+            chars.append(chr(int(byte_str, 2)))
         except ValueError:
             continue
     
