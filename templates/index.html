@@ -4,18 +4,10 @@
   <meta charset="UTF-8">
   <title>MSB Steganography Web App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #f5f7fa;
-    }
-    .container {
-      max-width: 700px;
-      margin-top: 40px;
-    }
+    body { background-color: #f5f7fa; }
+    .container { max-width: 700px; margin-top: 40px; }
     .section {
       background: #fff;
       border-radius: 10px;
@@ -32,42 +24,41 @@
   </style>
 </head>
 <body>
-
   <div class="container">
     <h2 class="text-center mb-4">🔐 MSB Steganography</h2>
 
-    <!-- Encryption Section -->
+    <!-- Encrypt -->
     <div class="section">
       <h4>Encrypt Message into Image</h4>
       <form action="/encrypt" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="image" class="form-label">Upload Image:</label>
-          <input class="form-control" type="file" id="encrypt-image" name="image" accept="image/*" required>
+          <label class="form-label">Upload Image:</label>
+          <input class="form-control" type="file" name="image" accept="image/*" required>
         </div>
         <div class="mb-3">
-          <label for="message" class="form-label">Enter Message or Upload .txt File:</label>
-          <input class="form-control mb-2" type="text" id="message" name="message" placeholder="Enter message...">
-          <input class="form-control" type="file" id="message-file" name="message_file" accept=".txt">
+          <label class="form-label">Enter Message or Upload .txt File:</label>
+          <input class="form-control mb-2" type="text" name="message" placeholder="Enter message...">
+          <input class="form-control" type="file" name="message_file" accept=".txt">
         </div>
         <div class="mb-3">
-          <label for="key" class="form-label">Key:</label>
-          <input class="form-control" type="text" id="key" name="key" required>
+          <label class="form-label">Key:</label>
+          <input class="form-control" type="text" name="key" required>
         </div>
         <button class="btn btn-primary" type="submit">Encrypt & Download</button>
       </form>
     </div>
 
-    <!-- Decryption Section -->
+    <!-- Decrypt -->
     <div class="section">
       <h4>Decrypt Message from Image</h4>
       <form action="/decrypt" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="decrypt-image" class="form-label">Upload Encrypted Image:</label>
-          <input class="form-control" type="file" id="decrypt-image" name="image" accept="image/*" required>
+          <label class="form-label">Upload Encrypted Image:</label>
+          <input class="form-control" type="file" name="image" accept="image/*" required>
         </div>
         <div class="mb-3">
-          <label for="decrypt-key" class="form-label">Key:</label>
-          <input class="form-control" type="text" id="decrypt-key" name="key" required>
+          <label class="form-label">Key:</label>
+          <input class="form-control" type="text" name="key" required>
         </div>
         <button class="btn btn-success" type="submit">Decrypt</button>
       </form>
@@ -79,39 +70,16 @@
       </div>
       {% endif %}
 
-      {% if error %}
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
       <div class="alert alert-danger mt-3">
-        {{ error }}
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
       </div>
       {% endif %}
+      {% endwith %}
     </div>
   </div>
-
-  <script>
-    // Clear message input when file is selected
-    document.getElementById('message-file').addEventListener('change', function () {
-      if (this.files.length > 0) {
-        document.getElementById('message').value = '';
-      }
-    });
-
-    // Clear file input when message text is typed
-    document.getElementById('message').addEventListener('input', function () {
-      if (this.value.length > 0) {
-        document.getElementById('message-file').value = '';
-      }
-    });
-
-    // Clear key/message fields when a new image is uploaded
-    document.getElementById('encrypt-image').addEventListener('change', function () {
-      document.getElementById('message').value = '';
-      document.getElementById('message-file').value = '';
-      document.getElementById('key').value = '';
-    });
-
-    document.getElementById('decrypt-image').addEventListener('change', function () {
-      document.getElementById('decrypt-key').value = '';
-    });
-  </script>
 </body>
-</html>
+</html>  <!-- Fixed closing tag -->
