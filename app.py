@@ -66,7 +66,7 @@ def decrypt():
         return redirect(url_for("index"))
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
