@@ -1,81 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSB Web Steganography</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            padding: 2rem;
-            background-color: #f8f9fa;
-        }
-        .card {
-            margin-bottom: 2rem;
-        }
-        .form-label {
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>MSB Steganography Web App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <style>
+    body {
+      background-color: #f5f7fa;
+    }
+    .container {
+      max-width: 700px;
+      margin-top: 40px;
+    }
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .output-box {
+      background-color: #e7f3ff;
+      border-left: 4px solid #007bff;
+      padding: 10px 15px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center mb-4">MSB-Based Image Steganography</h1>
 
-        <div class="card">
-            <div class="card-header">Encrypt Message into Image</div>
-            <div class="card-body">
-                <form action="/encrypt" method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Upload Image</label>
-                        <input type="file" name="image" id="image" accept="image/*" class="form-control" required>
-                    </div>
+  <div class="container">
+    <h2 class="text-center mb-4">🔐 MSB Steganography</h2>
 
-                    <div class="mb-3">
-                        <label for="key" class="form-label">Secret Key</label>
-                        <input type="text" name="key" id="key" class="form-control" placeholder="Enter key" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Enter Message</label>
-                        <textarea name="message" id="message" class="form-control" placeholder="Type message here..."></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="textfile" class="form-label">Or Upload Text File (.txt)</label>
-                        <input type="file" name="textfile" id="textfile" accept=".txt" class="form-control">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Encrypt and Download Image</button>
-                </form>
-            </div>
+    <!-- Encryption Section -->
+    <div class="section">
+      <h4>Encrypt Message into Image</h4>
+      <form action="/encrypt" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="image" class="form-label">Upload Image:</label>
+          <input class="form-control" type="file" id="encrypt-image" name="image" accept="image/*" required>
         </div>
-
-        <div class="card">
-            <div class="card-header">Decrypt Message from Image</div>
-            <div class="card-body">
-                <form action="/decrypt" method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Upload Image</label>
-                        <input type="file" name="image" id="image" accept="image/*" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="key" class="form-label">Secret Key</label>
-                        <input type="text" name="key" id="key" class="form-control" placeholder="Enter key" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-success">Decrypt</button>
-                </form>
-
-                {% if decrypted_text %}
-                    <div class="alert alert-info mt-3">
-                        <strong>Decrypted Message:</strong>
-                        <pre>{{ decrypted_text }}</pre>
-                    </div>
-                {% endif %}
-            </div>
+        <div class="mb-3">
+          <label for="message" class="form-label">Enter Message or Upload .txt File:</label>
+          <input class="form-control mb-2" type="text" id="message" name="message" placeholder="Enter message...">
+          <input class="form-control" type="file" id="message-file" name="message_file" accept=".txt">
         </div>
+        <div class="mb-3">
+          <label for="key" class="form-label">Key:</label>
+          <input class="form-control" type="text" id="key" name="key" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Encrypt & Download</button>
+      </form>
     </div>
+
+    <!-- Decryption Section -->
+    <div class="section">
+      <h4>Decrypt Message from Image</h4>
+      <form action="/decrypt" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="decrypt-image" class="form-label">Upload Encrypted Image:</label>
+          <input class="form-control" type="file" id="decrypt-image" name="image" accept="image/*" required>
+        </div>
+        <div class="mb-3">
+          <label for="decrypt-key" class="form-label">Key:</label>
+          <input class="form-control" type="text" id="decrypt-key" name="key" required>
+        </div>
+        <button class="btn btn-success" type="submit">Decrypt</button>
+      </form>
+
+      {% if decrypted_message %}
+      <div class="output-box mt-3">
+        <h5>Decrypted Message:</h5>
+        <p>{{ decrypted_message }}</p>
+      </div>
+      {% endif %}
+
+      {% if error %}
+      <div class="alert alert-danger mt-3">
+        {{ error }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Clear message input when file is selected
+    document.getElementById('message-file').addEventListener('change', function () {
+      if (this.files.length > 0) {
+        document.getElementById('message').value = '';
+      }
+    });
+
+    // Clear file input when message text is typed
+    document.getElementById('message').addEventListener('input', function () {
+      if (this.value.length > 0) {
+        document.getElementById('message-file').value = '';
+      }
+    });
+
+    // Clear key/message fields when a new image is uploaded
+    document.getElementById('encrypt-image').addEventListener('change', function () {
+      document.getElementById('message').value = '';
+      document.getElementById('message-file').value = '';
+      document.getElementById('key').value = '';
+    });
+
+    document.getElementById('decrypt-image').addEventListener('change', function () {
+      document.getElementById('decrypt-key').value = '';
+    });
+  </script>
 </body>
 </html>
