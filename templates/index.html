@@ -2,89 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MSB Image Steganography</title>
-    <!-- Bootstrap CSS from CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
-          rel="stylesheet" 
-          integrity="sha384-..." crossorigin="anonymous">
+    <title>MSB Web Stego</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; }
+        form { margin-top: 20px; }
+        input[type="text"], input[type="file"] { padding: 10px; width: 300px; margin: 10px 0; }
+        button { padding: 10px 20px; }
+        .message-box { margin-top: 20px; color: green; font-weight: bold; }
+        .error-box { color: red; }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Image Steganography (MSB Method)</h1>
-
-    <!-- Display flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <h1>MSB Steganography - Decrypt</h1>
+    {% with messages = get_flashed_messages() %}
       {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
+        <div class="error-box">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
       {% endif %}
     {% endwith %}
 
-    <div class="row">
-        <!-- Encryption Card -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Encrypt Message</h5>
-                    <form method="post" action="{{ url_for('encrypt') }}" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="cover_image" class="form-label">Cover Image</label>
-                            <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="secret_message" class="form-label">Secret Message</label>
-                            <textarea class="form-control" id="secret_message" name="secret_message" rows="3" placeholder="Type your message here..."></textarea>
-                            <div class="form-text">Alternatively, upload a <code>.txt</code> file below</div>
-                            <input type="file" class="form-control mt-2" name="message_file" accept=".txt">
-                        </div>
-                        <div class="mb-3">
-                            <label for="encrypt_key" class="form-label">Secret Key</label>
-                            <input type="text" class="form-control" id="encrypt_key" name="encrypt_key" placeholder="Enter encryption key" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Encrypt &amp; Download</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <form method="POST" action="/decrypt" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required><br>
+        <input type="text" name="key" placeholder="Enter decryption key" required><br>
+        <button type="submit">Decrypt</button>
+    </form>
 
-        <!-- Decryption Card -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Decrypt Message</h5>
-                    <form method="post" action="{{ url_for('decrypt') }}" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="stego_image" class="form-label">Stego Image</label>
-                            <input type="file" class="form-control" id="stego_image" name="stego_image" accept="image/*" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="decrypt_key" class="form-label">Secret Key</label>
-                            <input type="text" class="form-control" id="decrypt_key" name="decrypt_key" placeholder="Enter decryption key" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Decrypt</button>
-                    </form>
-                </div>
-            </div>
+    {% if decrypted_message %}
+        <div class="message-box">
+            <p>Decrypted Message: {{ decrypted_message }}</p>
         </div>
-    </div>
-
-    <!-- Display extracted message, if any -->
-    {% if decrypted_text %}
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Extracted Message</h5>
-            <p class="card-text">{{ decrypted_text }}</p>
-        </div>
-    </div>
     {% endif %}
-</div>
-
-<!-- Bootstrap JS for alert dismiss (optional) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
-        integrity="sha384-..." crossorigin="anonymous"></script>
 </body>
 </html>
