@@ -1,9 +1,9 @@
-# ✅ app.py
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 from PIL import Image
 import os
+import io
 
-app = Flask(__name__)
+app = Flask(_name_)
 app.secret_key = "supersecretkey"
 
 
@@ -13,11 +13,14 @@ def extract_message(image, key):
     width, height = image.size
 
     key_bin = ''.join(format(ord(c), '08b') for c in key)
+    key_index = 0
     message_bits = ""
 
     for y in range(height):
         for x in range(width):
             r, g, b = pixels[x, y]
+
+            # Decode only if key is matching (optional in basic MSB)
             lsb = r & 1
             message_bits += str(lsb)
 
@@ -30,6 +33,7 @@ def extract_message(image, key):
             continue
         break
 
+    # Convert to characters
     chars = [binary_message[i:i + 8] for i in range(0, len(binary_message), 8)]
     message = ''.join([chr(int(b, 2)) for b in chars])
     return message
@@ -62,6 +66,7 @@ def decrypt():
         return redirect(url_for("index"))
 
 
-if __name__ == "__main__":
+if __name__ == "_main_":
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
