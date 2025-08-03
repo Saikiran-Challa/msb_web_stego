@@ -1,39 +1,92 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MSB Web Stego</title>
+    <title>MSB Steganography Decryption</title>
     <style>
-        body { font-family: Arial; text-align: center; padding: 50px; }
-        form { margin-top: 20px; }
-        input[type="text"], input[type="file"] { padding: 10px; width: 300px; margin: 10px 0; }
-        button { padding: 10px 20px; }
-        .message-box { margin-top: 20px; color: green; font-weight: bold; }
-        .error-box { color: red; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background: #f9f9f9;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 420px;
+            margin: 20px auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        input[type="file"],
+        input[type="text"],
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            background-color: #e6ffe6;
+            color: #333;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .error {
+            background-color: #ffe6e6;
+            color: #a00;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1>MSB Steganography - Decrypt</h1>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="error-box">
-          {% for message in messages %}
-            <p>{{ message }}</p>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
+    <h2>🔍 Decrypt Hidden Message</h2>
     <form method="POST" action="/decrypt" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required><br>
-        <input type="text" name="key" placeholder="Enter decryption key" required><br>
-        <button type="submit">Decrypt</button>
+        <label for="image">Select Image:</label>
+        <input type="file" name="image" accept="image/*" required>
+
+        <label for="key">Enter Key:</label>
+        <input type="text" name="key" placeholder="Enter key" required>
+
+        <button type="submit">🔓 Decrypt</button>
     </form>
 
     {% if decrypted_message %}
-        <div class="message-box">
-            <p>Decrypted Message: {{ decrypted_message }}</p>
+        <div class="message">
+            <strong>Decrypted Message:</strong><br>
+            {{ decrypted_message }}
         </div>
     {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="error">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 </body>
 </html>

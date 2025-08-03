@@ -1,9 +1,11 @@
+# ✅ app.py
 from flask import Flask, render_template, request, redirect, url_for, flash
 from PIL import Image
 import os
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
 
 def extract_message(image, key):
     binary_message = ""
@@ -28,14 +30,15 @@ def extract_message(image, key):
             continue
         break
 
-    # Convert to characters
     chars = [binary_message[i:i + 8] for i in range(0, len(binary_message), 8)]
     message = ''.join([chr(int(b, 2)) for b in chars])
     return message
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/decrypt", methods=["POST"])
 def decrypt():
@@ -58,7 +61,7 @@ def decrypt():
         flash("Error during decryption: " + str(e))
         return redirect(url_for("index"))
 
+
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
