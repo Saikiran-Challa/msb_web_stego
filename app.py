@@ -3,6 +3,7 @@ from PIL import Image
 import os
 import io
 import hashlib
+import random  # Add this import
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
@@ -19,29 +20,29 @@ def embed_message(image, message, key):
 
     # Use key to seed the embedding process
     seed = int(hashlib.sha256(key.encode()).hexdigest(), 16)
+    random.seed(seed)
     
     # Prepend message length (32 bits)
     message_length = len(message)
     binary_length = format(message_length, '032b')
     binary_message = binary_length + ''.join(format(ord(char), '08b') for char in message)
     
-    pixels = image.convert("RGB").load()
-    index = 0
-
     # Create a copy to avoid modifying original
     img_copy = image.copy()
-    pixels_copy = img_copy.load()
-
-    for y in range(height):
-        for x in range(width):
-            if index >= len(binary_message):
-                break
-            r, g, b = pixels_copy[x, y]
-            new_r = (r & ~1) | int(binary_message[index])
-            pixels_copy[x, y] = (new_r, g, b)
-            index += 1
-        if index >= len(binary_message):
+    pixels = img_copy.load()
+    
+    # Generate random pixel order using the seed
+    indices = [(x, y) for y in range(height) for x in range(width)]
+    random.shuffle(indices)
+    
+    # Embed the binary message
+    for i, bit in enumerate(binary_message):
+        if i >= len(indices):
             break
+        x, y = indices[i]
+        r, g, b = pixels[x, y]
+        new_r = (r & ~1) | int(bit)
+        pixels[x, y] = (new_r, g, b)
 
     output = io.BytesIO()
     img_copy.save(output, format="PNG")
@@ -50,48 +51,50 @@ def embed_message(image, message, key):
 
 # 🔓 Extract message from image
 def extract_message(image, key):
+    # Use key to seed the extraction process
     seed = int(hashlib.sha256(key.encode()).hexdigest(), 16)
+    random.seed(seed)
     
-    pixels = image.convert("RGB").load()
+    pixels = image.load()
     width, height = image.size
+    
+    # Generate same random pixel order using the seed
+    indices = [(x, y) for y in range(height) for x in range(width)]
+    random.shuffle(indices)
+    
+    # Extract binary message
     binary_message = ""
-
-    # First 32 bits contain message length
-    for y in range(height):
-        for x in range(width):
-            if len(binary_message) >= 32:
-                break
-            r, g, b = pixels[x, y]
-            binary_message += str(r & 1)
+    for x, y in indices:
+        r, g, b = pixels[x, y]
+        binary_message += str(r & 1)
         if len(binary_message) >= 32:
-            break
+            try:
+                # Check if we have full length header
+                message_length = int(binary_message[:32], 2)
+                total_bits = 32 + message_length * 8
+                if len(binary_message) >= total_bits:
+                    break
+            except:
+                continue
 
-    # Get message length from first 32 bits
+    # Extract message length from first 32 bits
+    if len(binary_message) < 32:
+        raise ValueError("Invalid message header")
+    
     try:
         message_length = int(binary_message[:32], 2)
     except ValueError:
         raise ValueError("Invalid message header - possibly wrong key")
 
-    total_bits_needed = 32 + message_length * 8
-    bits_collected = 32
-
-    # Collect the actual message bits
-    for y in range(height):
-        for x in range(width):
-            if bits_collected >= total_bits_needed:
-                break
-            r, g, b = pixels[x, y]
-            binary_message += str(r & 1)
-            bits_collected += 1
-        if bits_collected >= total_bits_needed:
-            break
-
-    # Convert binary to string
+    # Extract actual message
+    message_bits = binary_message[32:32 + message_length * 8]
+    
+    # Convert to string
     chars = []
-    for i in range(32, len(binary_message), 8):
-        if i + 8 > len(binary_message):
+    for i in range(0, len(message_bits), 8):
+        if i + 8 > len(message_bits):
             break
-        char_bin = binary_message[i:i+8]
+        char_bin = message_bits[i:i+8]
         try:
             chars.append(chr(int(char_bin, 2)))
         except ValueError:
@@ -99,7 +102,7 @@ def extract_message(image, key):
     
     return ''.join(chars)
 
-# � Homepage
+# 🏠 Homepage
 @app.route("/")
 def index():
     return render_template("index.html")
