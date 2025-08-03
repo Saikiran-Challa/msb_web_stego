@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSB Steganography Web App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-8">🔐 MSB Steganography</h1>
+
+    <!-- Encrypt Form -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-10">
+      <h2 class="text-xl font-semibold mb-4">Encrypt Message into BMP Image</h2>
+      <form action="/encrypt" method="post" enctype="multipart/form-data" id="encryptForm">
+        <div class="mb-4">
+          <label class="block font-medium">Upload BMP Image:</label>
+          <input type="file" name="image" accept=".bmp" required class="mt-2" id="imageInput" />
+        </div>
+        <div class="mb-4">
+          <label class="block font-medium">Enter Message:</label>
+          <textarea name="message" rows="4" class="w-full border rounded mt-1 p-2"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block font-medium">Or Upload .txt File:</label>
+          <input type="file" name="textfile" accept=".txt" class="mt-2" />
+        </div>
+        <div class="mb-4">
+          <label class="block font-medium">Enter Key:</label>
+          <input type="text" name="key" required class="w-full border rounded mt-1 p-2" id="keyInput" />
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Encrypt</button>
+      </form>
+    </div>
+
+    <!-- Decrypt Form -->
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Decrypt Message from Image</h2>
+      <form action="/decrypt" method="post" enctype="multipart/form-data" id="decryptForm">
+        <div class="mb-4">
+          <label class="block font-medium">Upload Stego BMP Image:</label>
+          <input type="file" name="image" accept=".bmp" required class="mt-2" id="decryptImageInput" />
+        </div>
+        <div class="mb-4">
+          <label class="block font-medium">Enter Key:</label>
+          <input type="text" name="key" required class="w-full border rounded mt-1 p-2" id="decryptKeyInput" />
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Decrypt</button>
+      </form>
+
+      {% if decrypted_text %}
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold">Decrypted Message:</h3>
+        <p class="mt-2 whitespace-pre-wrap bg-gray-100 p-4 border rounded">{{ decrypted_text }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Clear inputs on new image upload
+    document.getElementById("imageInput").addEventListener("change", () => {
+      document.getElementById("encryptForm").reset();
+    });
+    document.getElementById("decryptImageInput").addEventListener("change", () => {
+      document.getElementById("decryptForm").reset();
+    });
+  </script>
+</body>
+</html>
